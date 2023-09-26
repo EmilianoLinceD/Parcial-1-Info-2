@@ -1,0 +1,186 @@
+const int dataPin = 2;      // Pin de datos (DS)
+const int clockPin = 5;     // Pin de reloj (SHCP)
+const int latchPin = 4;     // Pin de almacenamiento (STCP)
+const int numFilas = 8;     // Número de filas de LEDs
+const int numColumnas = 8;  // Número de columnas de LEDs
+  
+byte matrizLEDs[numFilas];  // Matriz para almacenar el estado de los LEDs
+
+void setup() {
+  pinMode(dataPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(latchPin, OUTPUT);
+  Serial.begin(9600);
+  
+}
+
+void loop() {
+ publik();
+}
+
+// Funciones extras//
+
+void actualizarMatriz() {
+  digitalWrite(latchPin, LOW);  // Preparar para la carga en paralelo
+  for (int fila = 0; fila < numFilas; fila++) {
+    shiftOut(dataPin, clockPin, LSBFIRST, matrizLEDs[fila]);
+  }
+  digitalWrite(latchPin, HIGH);  // Actualizar los registros de almacenamiento
+}
+void limpiarMatriz() {
+  for (int fila = 0; fila < numFilas; fila++) {
+    matrizLEDs[fila] = 0;
+  }
+}
+
+// Funciones para cada punto del parcial//
+//--------------------------------------------------------------------------------------------------------------------------//
+
+void verificacion() {
+  digitalWrite(latchPin, LOW);  // Preparar para la carga en paralelo
+  for (int i = 0; i < 8; i++) {
+    shiftOut(dataPin, clockPin, LSBFIRST, 255);  // 255 enciende todos los bits
+  }
+  digitalWrite(latchPin, HIGH);  // Actualizar los registros de almacenamiento
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+void imagen() {
+  limpiarMatriz(); // Limpiar la matriz antes de definir un nuevo patrón
+  Serial.println("Ingrese el patrón por filas (8 filas de 8 bits cada una):");
+
+  for (int fila = 0; fila < numFilas; fila++) {
+    Serial.print("Fila "); // Muestra el número de fila actual
+    Serial.print(fila + 1); // Suma 1 para mostrar el número de fila en base 1
+    Serial.print(": ");
+    while (!Serial.available()) {
+      // Esperar a que el usuario ingrese la fila
+    }
+
+    // Leer la fila ingresada por el usuario
+    byte filaBits = 0;
+    for (int bit = 0; bit < 8; bit++) {
+      while (!Serial.available()) {
+        // Esperar a que el usuario ingrese cada bit de la fila
+      }
+      char bitChar = Serial.read();
+      filaBits |= (bitChar == '1') ? (1 << bit) : 0;
+    }
+
+    matrizLEDs[fila] = filaBits;
+  }
+
+  // Mostrar el patrón ingresado en la matriz
+  actualizarMatriz();
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
+
+void formarpatron1() {
+  
+   for (int i = 0; i < numFilas+1 / 2; i++) {
+   	int fila=i;
+  
+  int centro = numColumnas / 2;
+  
+  // Rellena la parte superior del rombo
+  int espacios = abs(fila - centro); // Calcula la cantidad de espacios en blanco a cada lado del rombo
+  
+  for (int columna = 0; columna < numColumnas; columna++) {
+    if (columna >= espacios && columna < numColumnas - espacios) {
+      // Enciende los LEDs dentro del rombo
+      matrizLEDs[fila] |= (1 << columna);
+      matrizLEDs[numFilas - fila - 1] |= (1 << columna); // Refleja el patrón en la parte inferior
+    }
+  }
+  }
+  // Mostrar el patrón del rombo en la matriz
+  actualizarMatriz();
+}
+void formarpatron2() {
+  // Rellena el patrón de "X"
+  for (int fila = 0; fila < numFilas; fila++) {
+    matrizLEDs[fila] |= (1 << fila);           // Enciende los LEDs en diagonal ascendente
+    matrizLEDs[fila] |= (1 << (numFilas - fila - 1)); // Enciende los LEDs en diagonal descendente
+  }
+  
+  // Mostrar el patrón de "X" en la matriz
+  actualizarMatriz();
+}
+void formarpatron3() {
+   // Rellena el patrón de acuerdo a las especificaciones
+  for (int fila = 0; fila < numFilas; fila++) {
+    for (int columna = 0; columna < numColumnas; columna++) {
+      // Verifica las condiciones para encender o apagar LEDs
+      if ((fila == 0 || fila == 1 || fila == 4 || fila == 5) &&
+          (columna == 0 || columna == 1 || columna == 3 || columna == 4 || columna == 6 || columna == 7)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      } else if ((fila == 2 || fila == 3 || fila == 6 || fila == 7) &&
+                 (columna == 1 || columna == 2 || columna == 4 || columna == 5 || columna == 7)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      }
+    }
+  }
+  
+  // Mostrar el patrón en la matriz
+  actualizarMatriz();
+}
+void formarpatron4() {
+  // Rellena el patrón de acuerdo a las especificaciones
+  for (int fila = 0; fila < numFilas; fila++) {
+    for (int columna = 0; columna < numColumnas; columna++) {
+      if ((fila == 0 || fila == 7) && (columna >= 0 && columna <= 3)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      } else if ((fila == 1 || fila == 6) && (columna >= 1 && columna <= 4)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      } else if ((fila == 2 || fila == 5) && (columna >= 2 && columna <= 5)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      } else if ((fila == 3 || fila == 4) && (columna >= 3 && columna <= 6)) {
+        matrizLEDs[fila] |= (1 << columna);  // Enciende LEDs
+      }
+    }
+  }
+  // Mostrar el patrón en la matriz
+  actualizarMatriz();
+}
+void MostrarPatrones(){
+		formarpatron1();
+    	delay (500);
+    	limpiarMatriz();
+    	formarpatron2();
+    	delay (500);
+    	limpiarMatriz();
+    	formarpatron3();
+    	delay (500);
+    	limpiarMatriz();
+    	formarpatron4();
+}
+//-----------------------------------------------------------------------------------------------------------------//
+void publik() {
+  Serial.println("Selecciona una opción:");
+  Serial.println("1 Verificar funcionamiento de LEDs.");
+  Serial.println("2 Mostrar imagen de prueba.");
+  Serial.println("3 Mostrar patrones alternados 1 al 4.");
+
+  while (!Serial.available()) {
+    // Espera a que el usuario envíe un comando por el puerto serial.
+  }
+
+  char opcion = Serial.read();
+  switch (opcion) {
+    case '1':      // Implementa la funcion que verifica el encendido de todos los leds
+  	verificacion();
+  	delay(1000);  // Espera 1 segundo antes de encender los LEDs nuevamente
+      break;
+    case '2':
+      // Implementa la funcion que muestra el patron ingresado de la persona.
+   		imagen();
+      break;
+    case '3':
+      // Implementa la funcion que muestra los 4 patrones definidos.
+    	MostrarPatrones();
+      break;
+    default:
+      Serial.println("Opción no válida.");
+  }
+}
